@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow 助手</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', sans-serif;
+    background: transparent;
+    overflow: hidden;
+    -moz-user-select: none;
+         user-select: none;
+    -webkit-user-select: none;
+    -webkit-app-region: drag;
+    cursor: grab;
+    height: 100vh;
+    width: 100vw;
+  }
+  body:active { cursor: grabbing; }
+
+  .pet-wrapper {
+    position: relative;
+    width: 120px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .pet-body {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #86efac, #4ade80, #22c55e);
+    border-radius: 50% 50% 45% 45%;
+    position: relative;
+    box-shadow: 0 8px 25px rgba(34,197,94,0.35);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+  }
+  .pet-body:hover {
+    transform: scale(1.08);
+  }
+  .pet-body:active {
+    transform: scale(0.95);
+  }
+
+  /* 眼睛 */
+  .eyes {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 18px;
+  }
+  .eye {
+    width: 14px;
+    height: 18px;
+    background: #1a2e05;
+    border-radius: 50%;
+    position: relative;
+    animation: blink 3s ease-in-out infinite;
+  }
+  .eye::after {
+    content: '';
+    width: 5px;
+    height: 5px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+  }
+
+  /* 腮红 */
+  .cheeks {
+    position: absolute;
+    top: 42px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .cheek {
+    width: 14px;
+    height: 10px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+  }
+
+  /* 嘴巴 */
+  .mouth {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 7px;
+    border-bottom: 3px solid #1a2e05;
+    border-radius: 0 0 50% 50%;
+  }
+
+  /* 叶子/帽子 */
+  .leaf {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    animation: sway 2s ease-in-out infinite;
+  }
+
+  /* 小短手 */
+  .left-arm, .right-arm {
+    position: absolute;
+    width: 16px;
+    height: 28px;
+    background: linear-gradient(to bottom, #86efac, #4ade80);
+    border-radius: 50%;
+    top: 52px;
+  }
+  .left-arm {
+    left: -8px;
+    transform: rotate(-20deg);
+    animation: waveLeft 2s ease-in-out infinite;
+  }
+  .right-arm {
+    right: -8px;
+    transform: rotate(20deg);
+    animation: waveRight 2s ease-in-out infinite;
+  }
+
+  /* 气泡消息 */
+  .bubble {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #166534;
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    font-weight: 500;
+    -webkit-app-region: no-drag;
+  }
+  .bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid white;
+  }
+  .bubble.show {
+    opacity: 1;
+  }
+
+  /* 标签 */
+  .label {
+    font-size: 11px;
+    color: #166534;
+    margin-top: 4px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    -webkit-app-region: no-drag;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+  }
+
+  /* 通知徽标 */
+  .badge {
+    position: absolute;
+    top: 2px;
+    right: 16px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(239,68,68,0.4);
+    animation: popIn 0.3s ease-out;
+  }
+  .badge.hidden { display: none; }
+
+  @keyframes blink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+  }
+  @keyframes sway {
+    0%, 100% { transform: translateX(-50%) rotate(-5deg); }
+    50% { transform: translateX(-50%) rotate(5deg); }
+  }
+  @keyframes waveLeft {
+    0%, 100% { transform: rotate(-20deg); }
+    50% { transform: rotate(-35deg); }
+  }
+  @keyframes waveRight {
+    0%, 100% { transform: rotate(20deg); }
+    50% { transform: rotate(35deg); }
+  }
+  @keyframes popIn {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="pet-wrapper" id="petWrapper">
+  <div class="bubble" id="bubble"></div>
+  <div class="pet-body" id="petBody">
+    <div class="leaf">🌱</div>
+    <div class="eyes">
+      <div class="eye"></div>
+      <div class="eye"></div>
+    </div>
+    <div class="cheeks">
+      <div class="cheek"></div>
+      <div class="cheek"></div>
+    </div>
+    <div class="mouth"></div>
+    <div class="left-arm"></div>
+    <div class="right-arm"></div>
+    <span class="badge hidden" id="badge">3</span>
+  </div>
+  <div class="label">TaskFlow</div>
+</div>
+
+<script>
+  const API_BASE = window.TASKFLOW_API || '/api';
+  let taskCount = 0;
+
+  // 防止窗口被拖出屏幕
+  let dragState = { dragging: false, x: 0, y: 0 };
+
+  // 点击打开主应用
+  document.getElementById('petBody').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const mainUrl = window.TASKFLOW_MAIN_URL || '/';
+    window.open(mainUrl, '_blank');
+  });
+
+  // 双击刷新任务数据
+  document.getElementById('petBody').addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    fetchTaskCount();
+  });
+
+  // 气泡消息
+  const bubbleEl = document.getElementById('bubble');
+  let bubbleTimer = null;
+
+  function showBubble(msg, duration = 3000) {
+    bubbleEl.textContent = msg;
+    bubbleEl.classList.add('show');
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(() => {
+      bubbleEl.classList.remove('show');
+    }, duration);
+  }
+
+  function updateBadge(count) {
+    const badge = document.getElementById('badge');
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+
+  async function fetchTaskCount() {
+    try {
+      const res = await fetch(`${API_BASE}/tasks/today`);
+      const data = await res.json();
+      if (data.code === 0) {
+        const pending = (data.data?.tasks || []).filter(t => !t._is_completed && t.status !== 'done');
+        taskCount = pending.length;
+        updateBadge(taskCount);
+
+        if (taskCount === 0) {
+          showBubble('🎉 今日任务全部完成！');
+        } else if (taskCount <= 3) {
+          showBubble(`还有 ${taskCount} 个任务哦~ 加油！`);
+        } else {
+          showBubble(`今天有 ${taskCount} 个待办事项`);
+        }
+      }
+    } catch (err) {
+      showBubble('📡 正在尝试连接...');
+    }
+  }
+
+  // 定时轮询
+  fetchTaskCount();
+  setInterval(fetchTaskCount, 30000);
+
+  // 等待消息
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'taskflow:update-count') {
+      taskCount = e.data.count || 0;
+      updateBadge(taskCount);
+    }
+  });
+</script>
+</body>
+</html>
