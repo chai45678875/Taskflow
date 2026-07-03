@@ -21,5 +21,11 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // 绕过旧 Service Worker 缓存：无版本号时自动跳转
+      if (!location.search.includes('v=')) {
+        location.replace(location.pathname + '?v=3')
+      }
+    </script>
   </body>
 </html>
