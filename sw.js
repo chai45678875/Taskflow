@@ -2,7 +2,7 @@
 // 缓存策略：静态资源 Cache First，API Network First 回退缓存
 // 注意：本文件为静态资源，路径均相对于 Service Worker 的 scope（/Taskflow/）
 
-const CACHE_VERSION = 'taskflow-v2'
+const CACHE_VERSION = 'taskflow-v3'
 const STATIC_CACHE = `${CACHE_VERSION}-static`
 const API_CACHE = `${CACHE_VERSION}-api`
 const IMAGE_CACHE = `${CACHE_VERSION}-images`
