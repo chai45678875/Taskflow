@@ -25,8 +25,8 @@
   <body>
     <div id="root"></div>
     <script>
-      // 绕过旧 Service Worker 缓存：无版本号时自动跳转
-      if (!location.search.includes('v=')) {
+      // 绕过旧缓存：任何旧版本号都会自动跳转到最新版本
+      if (!location.search.includes('v=16')) {
         location.replace(location.pathname + '?v=16')
       }
     </script>
