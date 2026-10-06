@@ -15,20 +15,42 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="TaskFlow" />
     <meta name="description" content="个人事务管理系统，智能规划每日任务，支持周报复盘" />
-    <meta name="version" content="2026-09-20-v-1791300315431" />
+    <meta name="version" content="2026-09-20-v-1791300904725" />
     <link rel="manifest" href="/Taskflow/manifest.json" />
     <title>TaskFlow - 每日事务管家</title>
-    <script type="module" crossorigin src="/Taskflow/assets/main.js?v=1791300315431"></script>
-    <link rel="modulepreload" crossorigin href="/Taskflow/assets/vendor.js?v=1791300315431">
-    <link rel="stylesheet" crossorigin href="/Taskflow/assets/main.css?v=1791300315431">
+    <script>
+      // ===== 版本自检：解决 GitHub Pages 对 HTML 的强制缓存（约 10 分钟）导致用户长期停留在旧版的问题 =====
+      // 原理：用 no-store 拉一次线上 index.html，比对 <meta name="version">。判定线上为新版时，
+      // 跳到一个全新的 URL（?v=时间戳，绝不命中缓存），从而强制加载新 HTML + 新资源。
+      (function () {
+        try {
+          var local = document.querySelector('meta[name="version"]').content
+          if (sessionStorage.getItem('tf_ver') === local) return // 本次会话已确认是最新
+          fetch(location.pathname + '?__probe=' + Date.now(), { cache: 'no-store' })
+            .then(function (r) { return r.text() })
+            .then(function (html) {
+              var m = html.match(/name="version"\s+content="([^"]+)"/)
+              var remote = m ? m[1] : ''
+              if (remote && remote !== local && sessionStorage.getItem('tf_reloaded') !== '1') {
+                // 线上是新版本 → 用全新 URL 强刷一次（每个会话最多一次，避免死循环）
+                sessionStorage.setItem('tf_reloaded', '1')
+                var u = new URL(location.href)
+                u.searchParams.set('v', String(Date.now()))
+                location.replace(u.toString())
+              } else {
+                sessionStorage.setItem('tf_ver', local)
+                sessionStorage.removeItem('tf_reloaded')
+              }
+            })
+            .catch(function () {})
+        } catch (e) {}
+      })()
+    </script>
+    <script type="module" crossorigin src="/Taskflow/assets/main.js?v=1791300904725"></script>
+    <link rel="modulepreload" crossorigin href="/Taskflow/assets/vendor.js?v=1791300904725">
+    <link rel="stylesheet" crossorigin href="/Taskflow/assets/main.css?v=1791300904725">
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      // 绕过旧缓存：任何旧版本号都会自动跳转到最新版本
-      if (!location.search.includes('v=1791300315431')) {
-        location.replace(location.pathname + '?v=1791300315431')
-      }
-    </script>
   </body>
 </html>
