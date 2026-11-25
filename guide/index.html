@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>TaskFlow 使用指南 · 把想做的事，变成今天能做完的事</title>
+<meta name="description" content="TaskFlow —— 围绕计划、执行、复盘、成长闭环的智能事务工作台。了解它的功能与使用方法。" />
+<style>
+  :root {
+    --bg: #f4fdf8;
+    --surface: #ffffff;
+    --surface-2: #f0fdf4;
+    --text: #1f2937;
+    --muted: #64748b;
+    --line: rgba(15, 23, 42, .08);
+    --accent: #22c55e;
+    --accent-strong: #15803d;
+    --good: #22c55e;
+    --warn: #f59e0b;
+    --bad: #ef4444;
+    --idle: #9ca3af;
+    --shadow: 0 10px 40px rgba(16, 185, 129, .10);
+  }
+  [data-theme="dark"] {
+    --bg: #0f171f;
+    --surface: #1a2733;
+    --surface-2: #223342;
+    --text: #e8f2ec;
+    --muted: #9fb3aa;
+    --line: rgba(203, 226, 214, .14);
+    --accent: #34d399;
+    --accent-strong: #6ee7b7;
+    --good: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --idle: #64748b;
+    --shadow: 0 10px 40px rgba(0, 0, 0, .3);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+
+  /* 顶部 */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; }
+  .brand .logo {
+    width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
+    background: linear-gradient(135deg, #4ade80, #22c55e); color: #fff; font-size: 17px;
+  }
+  .top-actions { display: flex; align-items: center; gap: 8px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 16px; border-radius: 12px; font-size: 13px; font-weight: 600;
+    transition: .2s; cursor: pointer; border: 1px solid transparent;
+  }
+  .btn-primary { background: linear-gradient(135deg, #4ade80, #22c55e); color: #fff; box-shadow: 0 4px 14px rgba(34,197,94,.28); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(34,197,94,.35); }
+  .btn-ghost { background: var(--surface); border-color: var(--line); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--accent); }
+  .icon-btn { width: 36px; height: 36px; padding: 0; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+
+  /* Hero：点阵网格 + 渐变光斑 */
+  .hero { position: relative; overflow: hidden; padding: 74px 0 58px; text-align: center; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; z-index: -2;
+    background-image: radial-gradient(circle, var(--accent) 1px, transparent 1.4px);
+    background-size: 22px 22px; opacity: .16;
+    -webkit-mask-image: radial-gradient(ellipse 62% 70% at 50% 40%, #000 30%, transparent 100%);
+    mask-image: radial-gradient(ellipse 62% 70% at 50% 40%, #000 30%, transparent 100%);
+  }
+  .hero::after {
+    content: ""; position: absolute; z-index: -1; width: 560px; height: 420px; left: 50%; top: 30px;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgba(74,222,128,.30), rgba(45,212,191,.16), transparent);
+    filter: blur(30px);
+  }
+  .badge {
+    display: inline-block; padding: 5px 14px; border-radius: 999px;
+    background: rgba(34,197,94,.12); color: var(--accent-strong);
+    font-size: 12px; font-weight: 600; margin-bottom: 18px;
+  }
+  .hero h1 { font-size: clamp(28px, 5.2vw, 46px); line-height: 1.3; margin: 0 0 16px; letter-spacing: -.5px; }
+  .hero h1 em { font-style: normal; color: var(--accent-strong); }
+  .hero p.lead { font-size: 16px; color: var(--muted); max-width: 620px; margin: 0 auto 26px; }
+  .hero .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .hero .btn { padding: 12px 22px; font-size: 14px; }
+
+  /* 通用区块 */
+  section.block { padding: 54px 0; }
+  .sec-head { text-align: center; margin-bottom: 36px; }
+  .sec-head .kicker { font-size: 12px; font-weight: 700; letter-spacing: 2px; color: var(--accent-strong); text-transform: uppercase; }
+  .sec-head h2 { font-size: clamp(22px, 3.5vw, 30px); margin: 8px 0 8px; }
+  .sec-head p { color: var(--muted); font-size: 14px; margin: 0; }
+
+  /* 闭环流程 */
+  .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+  .flow-item {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    padding: 22px 18px; box-shadow: var(--shadow); position: relative;
+  }
+  .flow-item .step {
+    width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+    background: rgba(34,197,94,.12); color: var(--accent-strong); font-weight: 700; font-size: 13px; margin-bottom: 12px;
+  }
+  .flow-item h3 { margin: 0 0 6px; font-size: 15px; }
+  .flow-item p { margin: 0; font-size: 12px; color: var(--muted); }
+
+  /* 功能展示：交错卡片 */
+  .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .feature {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .feature:nth-child(even) { transform: translateY(18px); }
+  .feature .fi { font-size: 26px; margin-bottom: 10px; }
+  .feature h3 { font-size: 16px; margin: 0 0 8px; }
+  .feature p { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+  .feature .points { display: flex; flex-wrap: wrap; gap: 6px; }
+  .feature .points span {
+    font-size: 11px; padding: 3px 9px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--muted);
+  }
+
+  /* 界面预览：四宫格指标（迁移 408OS 的设计点） */
+  .preview {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 22px;
+    padding: 26px; box-shadow: var(--shadow);
+  }
+  .preview-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .preview-head h3 { margin: 0; font-size: 15px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 9px; height: 9px; border-radius: 50%; display: block; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat {
+    border-radius: 14px; padding: 16px 12px; text-align: center;
+    background: var(--surface-2); border: 1px solid var(--line);
+  }
+  .stat .num { font-size: 22px; font-weight: 800; line-height: 1.2; }
+  .stat .lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .stat.g .num { color: var(--good); }
+  .stat.w .num { color: var(--warn); }
+  .stat.b .num { color: var(--bad); }
+  .stat.i .num { color: var(--accent-strong); }
+
+  /* 状态色语义 */
+  .states { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 22px; }
+  .state-chip { font-size: 12px; padding: 5px 14px; border-radius: 999px; border: 1px solid; font-weight: 600; }
+  .state-chip.good { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); background: color-mix(in srgb, var(--good) 10%, transparent); }
+  .state-chip.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); background: color-mix(in srgb, var(--warn) 10%, transparent); }
+  .state-chip.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+  .state-chip.idle { color: var(--idle); border-color: color-mix(in srgb, var(--idle) 40%, transparent); background: color-mix(in srgb, var(--idle) 10%, transparent); }
+
+  /* 更新日志 */
+  .changelog { max-width: 720px; margin: 0 auto; }
+  .log-item { position: relative; padding-left: 26px; margin-bottom: 26px; }
+  .log-item::before { content: ""; position: absolute; left: 5px; top: 8px; bottom: -26px; width: 2px; background: var(--line); }
+  .log-item:last-child::before { display: none; }
+  .log-item::after { content: ""; position: absolute; left: 1px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
+  .log-ver { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .log-ver b { font-size: 15px; }
+  .log-ver time { font-size: 12px; color: var(--muted); }
+  .log-item ul { margin: 0; padding: 0; list-style: none; }
+  .log-item li { font-size: 13px; color: var(--muted); margin-bottom: 3px; }
+
+  footer { border-top: 1px solid var(--line); padding: 30px 0; text-align: center; color: var(--muted); font-size: 12px; }
+  footer .links { display: flex; gap: 18px; justify-content: center; margin-bottom: 10px; }
+  footer a:hover { color: var(--accent-strong); }
+
+  @media (max-width: 720px) {
+    .features { grid-template-columns: 1fr; }
+    .feature:nth-child(even) { transform: none; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .hero { padding: 54px 0 40px; }
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <a href="../" class="brand"><span class="logo">🌱</span><span>TaskFlow</span></a>
+      <div class="top-actions">
+        <button class="btn btn-ghost icon-btn" id="themeToggle" title="切换主题" aria-label="切换主题">🌙</button>
+        <a href="../" class="btn btn-primary">打开应用 →</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <span class="badge">v18 · 持续迭代中</span>
+      <h1>把想做的事，<br /><em>变成今天能做完的事</em></h1>
+      <p class="lead">TaskFlow 围绕「计划 → 执行 → 复盘 → 成长」闭环，把任务、目标、课表与番茄钟串成一套可持续的节奏。它不催你，只是每天陪你把重要的事往前推一点。</p>
+      <div class="cta">
+        <a href="../" class="btn btn-primary">开始使用 →</a>
+        <a href="#features" class="btn btn-ghost">了解功能</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="block">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">How it works</div>
+        <h2>一套闭环，四个环节</h2>
+        <p>每一步都有对应工具，数据在本地自动串联</p>
+      </div>
+      <div class="flow">
+        <div class="flow-item"><div class="step">01</div><h3>🎯 计划</h3><p>从目标拆解到每日安排，生成一份可执行的当天计划。</p></div>
+        <div class="flow-item"><div class="step">02</div><h3>✅ 执行</h3><p>任务列表 + 番茄钟，专注当下；逾期任务自然周归档。</p></div>
+        <div class="flow-item"><div class="step">03</div><h3>📄 复盘</h3><p>周报、评分与输入输出复盘，让每次完成都有沉淀。</p></div>
+        <div class="flow-item"><div class="step">04</div><h3>📈 成长</h3><p>连续打卡、等级与能力雷达，看见长期的自己。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="features" style="padding-top: 20px;">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Features</div>
+        <h2>核心功能一览</h2>
+        <p>点开应用 sidebar 的「能力」页，可以体验感知式 AI 教练</p>
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="fi">🗓️</div><h3>智能每日计划</h3>
+          <p>按紧要程度与目标关联，把任务排进今天；跨天不消失，随时可编辑、推迟。</p>
+          <div class="points"><span>跨天历史浏览</span><span>逾期归档</span><span>拖动排序</span></div>
+        </div>
+        <div class="feature">
+          <div class="fi">🤖</div><h3>感知式 AI 教练</h3>
+          <p>结合任务、目标与身份画像作答，不是通用聊天；可读取当天上下文给出建议。</p>
+          <div class="points"><span>上下文感知</span><span>身份校准</span><span>模型可配置</span></div>
+        </div>
+        <div class="feature">
+          <div class="fi">🍅</div><h3>番茄钟与投入量化</h3>
+          <p>客观记录专注时长，与手填投入并列，让复盘有据可依，不再靠感觉。</p>
+          <div class="points"><span>计时记录</span><span>连续打卡</span><span>投入对比</span></div>
+        </div>
+        <div class="feature">
+          <div class="fi">🧠</div><h3>记忆锚点与复盘</h3>
+          <p>给重要的完成加上画面与一句话，输入输出成对沉淀，形成可回看的成长轨迹。</p>
+          <div class="points"><span>记忆锚点</span><span>警句轮播</span><span>能力雷达</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" style="padding-top: 20px;">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">At a glance</div>
+        <h2>一眼看清今天</h2>
+        <p>首页四宫格指标与状态色，帮助你快速判断该先做什么</p>
+      </div>
+      <div class="preview">
+        <div class="preview-head">
+          <h3>今日概览</h3>
+          <div class="dots"><i style="background:var(--good)"></i><i style="background:var(--warn)"></i><i style="background:var(--idle)"></i></div>
+        </div>
+        <div class="stats">
+          <div class="stat w"><div class="num">3</div><div class="lbl">待完成</div></div>
+          <div class="stat g"><div class="num">7</div><div class="lbl">已完成</div></div>
+          <div class="stat b"><div class="num">3 天</div><div class="lbl">连续打卡</div></div>
+          <div class="stat i"><div class="num">Lv.14</div><div class="lbl">我的等级</div></div>
+        </div>
+        <div class="states">
+          <span class="state-chip good">良好 · 按节奏推进</span>
+          <span class="state-chip warn">注意 · 即将到期</span>
+          <span class="state-chip bad">逾期 · 需处理</span>
+          <span class="state-chip idle">空闲 · 暂无安排</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="changelog" style="padding-top: 20px;">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Changelog</div>
+        <h2>更新公示</h2>
+        <p>应用首页顶部也会显示最新一版，点击即可查看详情</p>
+      </div>
+      <div class="changelog">
+        <div class="log-item">
+          <div class="log-ver"><b>v18</b><time>11-25</time></div>
+          <ul>
+            <li>· 全新暗色主题：深蓝灰分层 + 语义状态色</li>
+            <li>· 设置中心：主题、数据、AI、更新日志统一收纳</li>
+            <li>· 新增产品指南 Guide 页</li>
+            <li>· 任务列表重塑，支持编辑与移动端适配</li>
+          </ul>
+        </div>
+        <div class="log-item">
+          <div class="log-ver"><b>v17</b><time>11-24</time></div>
+          <ul><li>· 记忆锚点与输入输出复盘</li><li>· 投入量化：番茄钟记录 vs 手填并列</li></ul>
+        </div>
+        <div class="log-item">
+          <div class="log-ver"><b>v16</b><time>11-20</time></div>
+          <ul><li>· 身份校准对话</li><li>· 能力雷达接入 AI</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="links"><a href="../">打开应用</a><a href="#features">功能</a><a href="#changelog">更新日志</a></div>
+      <div>🌱 TaskFlow · 数据保存在你自己的浏览器里</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var saved = null;
+      try { saved = localStorage.getItem('taskflow_theme') } catch (e) {}
+      if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+      var btn = document.getElementById('themeToggle');
+      function sync() { btn.textContent = root.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙' }
+      sync();
+      btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('taskflow_theme', next) } catch (e) {}
+        sync();
+      });
+    })();
+  </script>
+</body>
+</html>
